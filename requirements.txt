@@ -1,0 +1,38 @@
+# Perfect STT v2.0 - Universal Distribution
+# Minimal dependencies for light installer (~50MB)
+
+# ============================================
+# CORE DEPENDENCIES (Required)
+# ============================================
+
+# Transcription engine with INT8/float16 support
+faster-whisper>=1.0.0
+
+# Web UI framework
+gradio>=4.0.0
+
+# Model downloading from HuggingFace
+huggingface-hub>=0.20.0
+
+# Audio/Video processing
+av>=10.0.0
+
+# ============================================
+# PYTORCH INSTALLATION (Choose ONE)
+# ============================================
+# The installer script will handle this automatically.
+# Manual installation options:
+
+# CPU Only (smaller, works everywhere):
+# pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# NVIDIA CUDA 11.8:
+# pip install torch --index-url https://download.pytorch.org/whl/cu118
+
+# NVIDIA CUDA 12.1:
+# pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# ============================================
+# BUILD TOOLS (For creating standalone .exe)
+# ============================================
+pyinstaller>=6.0.0
