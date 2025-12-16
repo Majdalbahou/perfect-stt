@@ -1,0 +1,62 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        pip install pyinstaller
+        
+    - name: Download FFmpeg
+      run: |
+        Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
+        Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_temp"
+        $ffmpegDir = Get-ChildItem -Path "ffmpeg_temp" -Directory | Select-Object -First 1
+        New-Item -ItemType Directory -Force -Path "ffmpeg"
+        Copy-Item "$($ffmpegDir.FullName)\bin\ffmpeg.exe" -Destination "ffmpeg\"
+        Copy-Item "$($ffmpegDir.FullName)\bin\ffprobe.exe" -Destination "ffmpeg\"
+        
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --name PerfectSTT --onedir --noconsole --icon=icon.ico --add-data "ffmpeg;ffmpeg" --hidden-import=faster_whisper --hidden-import=ctranslate2 --hidden-import=huggingface_hub --hidden-import=tokenizers --collect-all faster_whisper --collect-all ctranslate2 app.py
+        
+    - name: Download and Install Inno Setup
+      run: |
+        Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile "innosetup.exe"
+        Start-Process -FilePath "innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+        
+    - name: Build Installer
+      run: |
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+        
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: PerfectSTT-Installer
+        path: Output/*.exe
+        
+    - name: Upload Portable Version
+      uses: actions/upload-artifact@v4
+      with:
+        name: PerfectSTT-Portable
+        path: dist/PerfectSTT/
