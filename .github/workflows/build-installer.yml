@@ -29,6 +29,7 @@ jobs:
         
     - name: Download FFmpeg
       run: |
+        $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
         Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_temp"
         $ffmpegDir = Get-ChildItem -Path "ffmpeg_temp" -Directory | Select-Object -First 1
@@ -40,10 +41,8 @@ jobs:
       run: |
         pyinstaller --name PerfectSTT --onedir --noconsole --icon=icon.ico --add-data "ffmpeg;ffmpeg" --hidden-import=faster_whisper --hidden-import=ctranslate2 --hidden-import=huggingface_hub --hidden-import=tokenizers --collect-all faster_whisper --collect-all ctranslate2 app.py
         
-    - name: Download and Install Inno Setup
-      run: |
-        Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile "innosetup.exe"
-        Start-Process -FilePath "innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+    - name: Install Inno Setup
+      run: choco install innosetup -y --no-progress
         
     - name: Build Installer
       run: |
